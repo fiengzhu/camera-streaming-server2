@@ -18,7 +18,6 @@ WebcamService::WebcamService() : capture(jafp::OvVideoCapture::OV_MODE_1920_1080
 	recordingThread = new Thread("WebCamRecording");
 	recordingAdapter = new RunnableAdapter<WebcamService>(*this, &WebcamService::RecordingCore);
 	isRecording = false;
-	params = { CV_IMWRITE_JPEG_QUALITY, 30 };
 	fps = 15;
 	delay = 1000 / fps; //in ms
 }
@@ -47,8 +46,8 @@ void WebcamService::SetModifiedImage(Mat& image) {
 
 	Poco::Mutex::ScopedLock lock(modifiedImgMutex); //will be released after leaving scop
 	// encode mat to jpg and copy it to content
-	cv::imencode(".jpg", image, modifiedImage, params);
-
+	cv::imencode(".bmp", image, modifiedImage);	
+	
 	//sw.stop();
 	//printf("modified image: %f  ms/n", sw.elapsed() * 0.001);
 }

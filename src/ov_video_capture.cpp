@@ -138,7 +138,7 @@ bool OvVideoCapture::retrieve(cv::Mat& image) {
 
 	image.create(mode_.height, mode_.width, CV_8UC3);
 
-	std::cout << "image create returned " << mode_.width << 'x' << mode_.height << std::endl;
+	//std::cout << "image create returned " << mode_.width << 'x' << mode_.height << std::endl;
 
 	//image = cv::imdecode((cv::CvMat*)buffer_);
 	//to_gray(buffer_, image.data, frame_size_);

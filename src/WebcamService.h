@@ -12,7 +12,7 @@
 #include <memory>
 #include <vector>
 
-//#define USE_OV_CAPTURE
+#define USE_OV_CAPTURE
 
 using cv::VideoCapture;
 using cv::Mat;
