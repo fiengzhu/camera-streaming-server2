@@ -35,4 +35,5 @@ bool VideoStreamingController::StopStreamingServer() {
 void VideoStreamingController::HandleLostConnections(const void* pSender, const SocketAddress& arg) {
 	//Message* message = new Message(MessageCommandEnum::connectionlost);
 	//message->AddParam("ip", arg.toString());
+	std::cout << arg.toString() << std::endl;
 }

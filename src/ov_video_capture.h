@@ -34,7 +34,7 @@ class OvVideoCapture {
 public:
 	
 	// Various constants
-	static const int NumBuffers = 4;
+	static const int NumBuffers = 10;
 	static const int DefaultInputNo = 1;
 	static const int DefaultFormat = V4L2_PIX_FMT_SBGGR8;
 	static const int DefaultFormatChannels = 1;
@@ -42,10 +42,10 @@ public:
 	// Modes
 	static const OvVideoMode OV_MODE_640_480_30;
 	static const OvVideoMode OV_MODE_320_240_30;
-        static const OvVideoMode OV_MODE_1920_1080_15;
+    static const OvVideoMode OV_MODE_1920_1080_15;
 	static const OvVideoMode OV_MODE_2592_1944_15;
 	
-	OvVideoCapture(const OvVideoMode& mode = OV_MODE_320_240_30);
+	OvVideoCapture(const OvVideoMode& mode = OV_MODE_320_240_30, int ng = 4);
 	virtual ~OvVideoCapture();
 	
 	// Opens the device (OV5640 sensor connected to the MIPI CSI2 channel).
@@ -75,12 +75,16 @@ public:
 		return (*this);
 	}
 
+	const OvVideoMode& mode_;
+
 private:
 	int fd_;
 	int current_buffer_index_;
 	int frame_size_;
 	bool is_opened_;
 	unsigned char* buffer_;
+
+	int ng_;
 
 	// Use the iMX6 IPU to do color space conversion
 	// See http://github.com/jafp/imx6_ipu_csc
@@ -89,7 +93,7 @@ private:
 	//ipu_csc_format_t ipu_output_format_;
 
 	OvFrameBuffer buffers_[NumBuffers];
-	const OvVideoMode& mode_;
+	
 
 	bool open_internal();
 	bool start_capturing();

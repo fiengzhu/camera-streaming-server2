@@ -43,12 +43,32 @@ using Poco::Util::HelpFormatter;
 using Poco::Util::LayeredConfiguration;
 using Poco::Util::ServerApplication;
 
-int main()
+int main(int argc, char *argv[])
 {
 	Logger& logger = Logger::get("main");
 	logger.information("Threads were used");
 
-	SharedPtr<WebcamService> webcamService(new WebcamService());
+	int mode = 0;
+	int nGrab = 4;
+	bool bResize = false;
+
+
+	if (argc > 1) {
+		int m = atoi(argv[1]);
+		if (m>0) mode = 1;
+	}
+
+	if (argc > 2) {
+		int m = atoi(argv[2]);
+		if (m > 0) bResize = true;
+	}
+
+	if (argc > 3) {
+		int m = atoi(argv[3]); if (m<=0) m = 1; if (m>=100) m = 100;
+		nGrab = m;
+	}
+
+	SharedPtr<WebcamService> webcamService(new WebcamService(mode, bResize, nGrab));
 
 	WebCamController webCamCtrl(webcamService);
 	VideoStreamingController vidStreamCtrl(webcamService);
@@ -61,9 +81,11 @@ int main()
 
 	char key;
 	while (1) {
-		key = cvWaitKey(10);
+		key = cvWaitKey(1000);
+		//std::cout << key << std::endl;
 
-		if (char(key) == 27) {
+		if (char(key) == 'q') {
+			
 			break; //If you hit ESC key loop will break.
 		}
 	}

@@ -56,8 +56,8 @@ const OvVideoMode OvVideoCapture::OV_MODE_2592_1944_15 = { 2592, 1944, 15, 5 };
 }*/
 
 
-OvVideoCapture::OvVideoCapture(const OvVideoMode& mode) 
-	: mode_(mode) { 
+OvVideoCapture::OvVideoCapture(const OvVideoMode& mode, int ng) 
+	: mode_(mode), ng_(ng) { 
 }
 
 OvVideoCapture::~OvVideoCapture() {
@@ -118,7 +118,6 @@ bool OvVideoCapture::grab() {
 	if (ioctl(fd_, VIDIOC_DQBUF, &capture_buf) < 0) {
 		return false;
 	}
-
 	// Do not copy anything here, but save the index of the current
 	// frame buffer for later use (e.g. in retrieve)
 	current_buffer_index_ = capture_buf.index;
@@ -133,8 +132,11 @@ bool OvVideoCapture::grab() {
 }
 
 bool OvVideoCapture::retrieve(cv::Mat& image) {
-		
-	if (!grab())  { return false; }	
+	
+	if (ng_<=0) ng_= 1;	
+	for (int i=0; i<ng_; i++) {if (!grab())  { return false; }	}
+	
+	//std::cout << "current buffer index " << current_buffer_index_ << std::endl;
 
 	image.create(mode_.height, mode_.width, CV_8UC3);
 
@@ -166,18 +168,18 @@ bool OvVideoCapture::start_capturing() {
 	struct v4l2_buffer buf;
 	enum v4l2_buf_type type;
 
-	for (i = 0; i < NumBuffers; i++) {
-        	memset (&buf, 0, sizeof (buf));
-        	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        	buf.memory = V4L2_MEMORY_MMAP;
-        	buf.index = i;
-        	if (ioctl(fd_, VIDIOC_QUERYBUF, &buf) < 0) { return false; }
+	for (i = 0; i < NumBuffers; i++) 
+	{
+        memset (&buf, 0, sizeof (buf));
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = i;
+        if (ioctl(fd_, VIDIOC_QUERYBUF, &buf) < 0) { return false; }
         	
 		buffers_[i].length = buf.length;
-        	buffers_[i].offset = (size_t) buf.m.offset;
-        	buffers_[i].start = static_cast<unsigned char*>(mmap (NULL, buffers_[i].length, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, buffers_[i].offset));
+        buffers_[i].offset = (size_t) buf.m.offset;
+        buffers_[i].start = static_cast<unsigned char*>(mmap (NULL, buffers_[i].length, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, buffers_[i].offset));
 		
-
 		memset (buffers_[i].start, 0xFF, buffers_[i].length);
 	}
 
@@ -188,9 +190,7 @@ bool OvVideoCapture::start_capturing() {
 		buf.memory = V4L2_MEMORY_MMAP;
 		buf.m.offset = buffers_[i].offset;
 
-		if (ioctl (fd_, VIDIOC_QBUF, &buf) < 0) {
-			return false;
-		}
+		if (ioctl(fd_, VIDIOC_QBUF, &buf) < 0) { return false; }
 	}
 
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

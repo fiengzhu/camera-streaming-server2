@@ -12,8 +12,6 @@
 #include <memory>
 #include <vector>
 
-#define USE_OV_CAPTURE
-
 using cv::VideoCapture;
 using cv::Mat;
 using std::vector;
@@ -24,7 +22,7 @@ using Poco::Mutex;
 
 class WebcamService : public Observable < WebcamService > {
 public:
-	WebcamService();
+	WebcamService(int mode, bool bResize = 0, int nGrab = 4);
 	~WebcamService();
 
 	bool StartRecording();
@@ -40,12 +38,9 @@ private:
 	bool isModifiedAvailable;
 	int fps;
 	int delay;
+	bool m_bResize;
 
-#ifndef USE_OV_CAPTURE
-	VideoCapture capture;
-#else
-	jafp::OvVideoCapture capture;
-#endif
+	jafp::OvVideoCapture * capture;
 
 	Mat lastImage;
 	vector<uchar> modifiedImage;
