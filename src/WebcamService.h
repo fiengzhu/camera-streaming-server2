@@ -22,7 +22,7 @@ using Poco::Mutex;
 
 class WebcamService : public Observable < WebcamService > {
 public:
-	WebcamService(int mode, bool bResize = 0, int nGrab = 4);
+	WebcamService(int mode, int nResize = 0, int nGrab = 4);
 	~WebcamService();
 
 	bool StartRecording();
@@ -38,7 +38,7 @@ private:
 	bool isModifiedAvailable;
 	int fps;
 	int delay;
-	bool m_bResize;
+	int m_nResize;
 
 	jafp::OvVideoCapture * capture;
 

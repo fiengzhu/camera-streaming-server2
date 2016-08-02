@@ -12,7 +12,7 @@ using std::cout;
 
 
 //WebcamService::WebcamService() : capture(jafp::OvVideoCapture::OV_MODE_1920_1080_15) {
-WebcamService::WebcamService(int mode, bool bResize, int nGrab) {
+WebcamService::WebcamService(int mode, int nResize, int nGrab) {
 
 
 	recordingThread = new Thread("WebCamRecording");
@@ -22,7 +22,7 @@ WebcamService::WebcamService(int mode, bool bResize, int nGrab) {
 	fps = 15;
 	delay = 1000 / fps; //in ms
 
-	m_bResize = bResize;
+	m_nResize = nResize;
 
 	if (mode == 0)
 		capture = new jafp::OvVideoCapture(jafp::OvVideoCapture::OV_MODE_1920_1080_15, nGrab);
@@ -137,8 +137,10 @@ void WebcamService::RecordingCore() {
 	Logger& logger = Logger::get("WebcamService");
 	Mat frame;
 
-	Mat frameSM;
-	frameSM.create(capture->mode_.height/4, capture->mode_.width/4, CV_8UC3);
+	Mat frameSM_h;
+	Mat frameSM_q;
+	frameSM_h.create(capture->mode_.height/2, capture->mode_.width/2, CV_8UC3);
+	frameSM_q.create(capture->mode_.height/4, capture->mode_.width/4, CV_8UC3);
 
 	//Stopwatch sw;
 	//Clock clock;
@@ -157,7 +159,8 @@ void WebcamService::RecordingCore() {
 		clock_t t0 = clock();
 		capture->read(frame);
 		clock_t t1 = clock();
-		cv::resize(frame, frameSM, frameSM.size());
+		if (m_nResize == 2) cv::resize(frame, frameSM_h, frameSM_h.size());
+		if (m_nResize == 4) cv::resize(frame, frameSM_q, frameSM_q.size());
 		clock_t t2 = clock();
 
 		//cv::imwrite("testweb.jpg", frame);
@@ -168,10 +171,23 @@ void WebcamService::RecordingCore() {
 		{
 			
 			Poco::Mutex::ScopedLock lock(lastImgMutex); //will be released after leaving scop
-			if (m_bResize)
-				lastImage = frameSM;//frame; //Clone image
-			else
-				lastImage = frame;
+			switch (m_nResize)
+			{
+				case 0:
+					lastImage = frame;//frame; //Clone image
+				break;
+				case 2:
+					lastImage = frameSM_h;//frame; //Clone image
+				break;
+				case 4:
+					lastImage = frameSM_q;//frame; //Clone image
+				break;
+				default:
+					lastImage = frame;//frame; //Clone image
+				break;
+
+			}
+			
 			SetModifiedImage(lastImage);
 				//logger.information("new image");
 			//std::cout << "Captured good Frame" << std::endl;
